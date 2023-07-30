@@ -12,7 +12,7 @@ import subprocess
 import openai
 from dotenv import load_dotenv
 import requests
-from textgrid import textgrid_parse, get_comparison
+from textgrid import get_comparison
 
 load_dotenv()
 
@@ -102,7 +102,7 @@ def sentence_api():
     subprocess.call(['ffmpeg', '-i', f'inputs/file_{sentence_id}_user.webm', '-c:a', 'pcm_f32le',
                      f'inputs/file_{sentence_id}_user.wav'])
 
-    return "success"
+    return {"message": "success"}
 
 
 @app.route('/finish', methods=['POST'])
@@ -111,10 +111,16 @@ def finish_api():
     print(sentence_ids)
 
     # Delete all .webm files
-    for sentence_id in sentence_ids:
-        if os.path.exists(f'inputs/file_{sentence_id}_user.webm'):
-            os.remove(f'inputs/file_{sentence_id}_user.webm')
-        #os.remove(f'inputs/file_{sentence_id}_bot.webm')
+    while True:
+        try:
+            for sentence_id in sentence_ids:
+                if os.path.exists(f'inputs/file_{sentence_id}_user.webm'):
+                    os.remove(f'inputs/file_{sentence_id}_user.webm')
+        except PermissionError as e:
+            print('waiting for files to be unlocked to delete')
+            time.sleep(10)
+            continue
+        break
 
     # Run MFA
     subprocess.call(['run_mfa.bat'], shell=True)

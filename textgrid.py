@@ -176,3 +176,4 @@ def get_comparison(user_textgrid, bot_textgrid):
             print('user: ', phones1)
             print('bot:  ', phones2)
             print(ops)
+    return items1, items2

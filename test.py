@@ -26,14 +26,10 @@ clicking on phone - shows the errors.
 3 - transposition: means phone is in wrong location
 4 - shows mismatch in stress level
 """
+from pprint import pprint
 
+from textgrid import get_comparison
 
-
-
-
-
-
-
-#get_comparison('temp/file_0_user.TextGrid', 'temp/file_0_bot.TextGrid')
+pprint(get_comparison('temp/file_0_user.TextGrid', 'temp/file_0_bot.TextGrid'))
 
 
