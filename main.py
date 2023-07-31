@@ -136,8 +136,8 @@ def finish_api():
 
     results = {}
     for sentence_id in sentence_ids:
-        j1, j2 = get_comparison(f'outputs/file_{sentence_id}_user.TextGrid', f'outputs/file_{sentence_id}_bot.TextGrid')
-        results[sentence_id] = (j1, j2)
+        j1, j2, word_ops = get_comparison(f'outputs/file_{sentence_id}_user.TextGrid', f'outputs/file_{sentence_id}_bot.TextGrid')
+        results[sentence_id] = (j1, j2, word_ops)
     print(results)
 
     return results

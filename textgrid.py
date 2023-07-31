@@ -143,16 +143,29 @@ def get_comparison(user_textgrid, bot_textgrid):
     words2 = [item['word'] for item in items2]
 
     print('=== damerau_levenshtein_distance for words ===')
-    ops = get_ops(words1, words2, is_damerau=True)
+    word_ops = get_ops(words1, words2, is_damerau=True)
     print('user: ', ' '.join(words1))
     print('bot:  ', ' '.join(words2))
-    print(ops)
+    print(word_ops)
 
 
     # issue with duplicate words
     # TODO USE levenshtein word ops to get matching word if it exists
-
+    index = -1
     for word in words2:  # words in bot
+        matching_word = None
+        for j, item in enumerate(items1):
+            if index >= j:
+                continue
+
+            if item['word'] == word:
+                matching_word = item
+                index = j
+                break
+
+        if matching_word is None:  # probably removed word
+            continue
+
         if word in words1:
             phones1, phones2 = [], []
 
@@ -168,12 +181,9 @@ def get_comparison(user_textgrid, bot_textgrid):
             print('=== damerau_levenshtein_distance for phones ===')
             ops = get_ops(phones1, phones2, is_damerau=True)
 
-            for item in items1:
-                if item['word'] == word:
-                    item['phone_ops'] = ops
-                    print(item['phones'])
-                    break
+            matching_word['phone_ops'] = ops
+
             print('user: ', phones1)
             print('bot:  ', phones2)
             print(ops)
-    return items1, items2
+    return items1, items2, word_ops
