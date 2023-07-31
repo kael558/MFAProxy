@@ -33,15 +33,15 @@ def get_ops(string1, string2, is_damerau=False):
                     continue
         index = np.argmin([dist_matrix[i - 1, j - 1], dist_matrix[i, j - 1],
                            dist_matrix[i - 1, j]])
-        print(i, j, index)
+
         if index == 0:
             if dist_matrix[i, j] > dist_matrix[i - 1, j - 1]:
                 ops.insert(0, ('replace', i - 1, j - 1))
             i -= 1
             j -= 1
         elif index == 1:
-            if i > 0 and j > 0:
-                ops.insert(0, ('insert', i - 1, j - 1))
+            #if i > 0 and j > 0:
+            ops.insert(0, ('insert', i - 1, j - 1))
             j -= 1
         elif index == 2:
             ops.insert(0, ('delete', i - 1, i - 1))
@@ -54,6 +54,8 @@ strl = [A, O, R] # -> [A, O, R]
 """
 
 def execute_ops(ops, string1, string2):
+    print(string1)
+    print(string2)
     strings = [string1]
     string = list(string1)
     shift = 0
@@ -177,3 +179,13 @@ def get_comparison(user_textgrid, bot_textgrid):
             print('bot:  ', phones2)
             print(ops)
     return items1, items2
+
+from pprint import pprint
+#//K W EH1 SH   AH0 N - user
+#//K W EH1 S CH AH0 N - bot
+ops = get_ops(['K', 'W', 'EH1', 'SH', 'AH0', 'N'], ['K', 'W', 'EH1', 'S', 'CH', 'AH0', 'N'], is_damerau=True)
+pprint(ops)
+
+
+res=execute_ops(ops, ['K', 'W', 'EH1', 'SH', 'AH0', 'N'], ['K', 'W', 'EH1', 'S', 'CH', 'AH0', 'N'])
+print(res)
