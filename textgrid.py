@@ -135,19 +135,6 @@ def extract(textgrid):
     return items
 
 
-def get_errors(lst1, lst2, ops):
-    errors = []
-    for op in ops:
-        if op[0] == 'insert':
-            errors.append((op[0], lst2[op[2]]))
-        elif op[0] == 'delete':
-            errors.append((op[0], lst1[op[1]]))
-        elif op[0] == 'replace':
-            errors.append((op[0], lst1[op[1]], lst2[op[2]]))
-        elif op[0] == 'transpose':
-            errors.append((op[0], lst1[op[1]], lst1[op[2]]))
-    return errors
-
 
 def get_mapping(user_textgrid, bot_textgrid):
     tg1 = textgrids.TextGrid()
@@ -177,13 +164,18 @@ def get_mapping(user_textgrid, bot_textgrid):
             items1[i]['matched_xmin'] = items2[j]['xmin']
             items1[i]['matched_xmax'] = items2[j]['xmax']
 
-
             del words1[i + shift]
             shift -= 1
         elif op[0] == 'insert':
+            if i + 1 >= len(items1):
+                items1.append({'word': words2[j], 'ops': []})
+                op_msg = 'auto inserted a "' + words2[j] + '"'
+            else:
+                op_msg = 'insert a "' + words2[j] + '"'
+
             if 'ops' not in items1[i + 1]:
                 items1[i + 1]['ops'] = []
-            items1[i + 1]['ops'].append('insert a "' + words2[j] + '"')
+            items1[i + 1]['ops'].append(op_msg)
             # items1[i + 1]['matched_phones'] = items2[j]['phones']
 
             items1[i + 1]['matched_xmin'] = items2[j+1 if j+1 < len(items2) else j]['xmin']
@@ -196,7 +188,7 @@ def get_mapping(user_textgrid, bot_textgrid):
                 items1[i]['ops'] = []
 
             items1[i]['ops'].append('replace with "' + words2[j] + '"')
-            print("replacing", words1[i + shift], "with", words2[j], i, j)
+            #print("replacing", words1[i + shift], "with", words2[j], i, j)
 
             items1[i]['matched_phones'] = items2[j]['phones']
 
@@ -209,11 +201,6 @@ def get_mapping(user_textgrid, bot_textgrid):
                 items1[i]['ops'] = []
             if 'ops' not in items1[j]:
                 items1[j]['ops'] = []
-
-            #user poverty-14 human-15
-            #bot human-14 poverty-15
-            #i = 15
-            #j = 14
 
             print("transposing", words1[i + shift], "with", words1[j + shift], i, j)
             items1[i]['ops'].append('swap with "' + words1[j + shift] + '"')
@@ -253,6 +240,7 @@ def get_mapping(user_textgrid, bot_textgrid):
         phones2 = [item['phone'] for item in item2_phones]
 
         phone_ops = get_ops(phones1, phones2, is_damerau=True)
+        print(phone_ops)
         shift = 0
         for op in phone_ops: # phone level operations
             i, j = op[1], op[2]
@@ -263,9 +251,15 @@ def get_mapping(user_textgrid, bot_textgrid):
                 del phones1[i + shift]
                 shift -= 1
             elif op[0] == 'insert':
+                if i + 1 >= len(item1['phones']):
+                    item1['phones'].append({'phone': phones2[j], 'ops': []})
+                    op_msg = 'auto inserted a "' + phones2[j] + '"'
+                else:
+                    op_msg = 'insert a "' + phones2[j] + '"'
+
                 if 'ops' not in item1['phones'][i+1]:
                     item1['phones'][i+1]['ops'] = []
-                item1['phones'][i+1]['ops'].append('insert a "' + phones2[j] + '"')
+                item1['phones'][i+1]['ops'].append(op_msg)
                 phones1.insert(i + shift + 1, phones2[j])
                 shift += 1
             elif op[0] == 'replace':
@@ -280,10 +274,10 @@ def get_mapping(user_textgrid, bot_textgrid):
                     item1['phones'][j]['ops'] = []
 
 
-                item1['phones'][i]['ops'].append('swap with "' + phones2[j + shift] + '"')
-                item1['phones'][j]['ops'].append('swap with "' + phones2[i + shift] + '"')
+                item1['phones'][i]['ops'].append('swap with "' + phones1[j + shift] + '"')
+                item1['phones'][j]['ops'].append('swap with "' + phones1[i + shift] + '"')
 
-                phones1[i + shift], phones1[j + shift] = phones2[j + shift], phones2[i + shift]
+                phones1[i + shift], phones1[j + shift] = phones1[j + shift], phones1[i + shift]
 
     return items1
 
