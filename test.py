@@ -28,8 +28,9 @@ clicking on phone - shows the errors.
 """
 from pprint import pprint
 
-from textgrid import get_comparison
+from textgrid import get_mapping
 
-pprint(get_comparison('temp/file_0_user.TextGrid', 'temp/file_0_bot.TextGrid'))
-
+#pprint(get_mapping('temp/file_0_user.TextGrid', 'temp/file_0_bot.TextGrid'))
+#pprint(get_mapping('outputs/file_0_user.TextGrid', 'outputs/file_0_bot.TextGrid'))
+pprint(get_mapping('outputs/file_1_user.TextGrid', 'outputs/file_1_bot.TextGrid'))
 

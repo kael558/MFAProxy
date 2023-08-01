@@ -12,7 +12,7 @@ import subprocess
 import openai
 from dotenv import load_dotenv
 import requests
-from textgrid import get_comparison
+from textgrid import get_comparison, get_mapping
 
 load_dotenv()
 
@@ -134,12 +134,9 @@ def finish_api():
     print('MFA finished')
     time.sleep(10)
 
-    results = {}
+    results ={}
     for sentence_id in sentence_ids:
-        j1, j2, word_ops = get_comparison(f'outputs/file_{sentence_id}_user.TextGrid', f'outputs/file_{sentence_id}_bot.TextGrid')
-        results[sentence_id] = (j1, j2, word_ops)
-    print(results)
-
+        results[sentence_id] = get_mapping(f'outputs/file_{sentence_id}_user.TextGrid', f'outputs/file_{sentence_id}_bot.TextGrid')
     return results
 
 if __name__ == '__main__':
