@@ -21,7 +21,6 @@ app = Flask(__name__)
 CORS(app)
 
 
-
 @app.route('/whisper', methods=['POST'])
 def whisper_api():
     audio = request.json['audio'].replace('data:audio/webm;base64,', '')
@@ -34,7 +33,6 @@ def whisper_api():
     return transcript
 
 
-
 @app.route('/completions', methods=['POST'])
 def completion_api():
     completion = openai.ChatCompletion.create(
@@ -42,6 +40,7 @@ def completion_api():
         messages=request.json['messages']
     )
     return completion
+
 
 def tts(text, voice_id, filename):
     CHUNK_SIZE = 1024
@@ -55,10 +54,11 @@ def tts(text, voice_id, filename):
 
     data = {
         "text": text,
-        "model_id": "eleven_monolingual_v1",
+        "model_id": "eleven_multilingual_v2",
         "voice_settings": {
-            "stability": 0.15,
-            "similarity_boost": 1
+            "stability": 0.5,
+            "similarity_boost": 0.75,
+            "use_speaker_boost": True
         }
     }
 
@@ -67,6 +67,7 @@ def tts(text, voice_id, filename):
         for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
             if chunk:
                 f.write(chunk)
+
 
 @app.route('/tts', methods=['POST'])
 def tts_api():
@@ -77,13 +78,15 @@ def tts_api():
 @app.route('/sentence', methods=['POST'])
 def sentence_api():
     # sentence_id, sentence, voice_id, audio
-    print(request.json['sentence_id'], request.json['sentence'], request.json['voice_id'])
+    print(request.json['sentence_id'], request.json['sentence'],
+          request.json['voice_id'])
     sentence_id = request.json['sentence_id']
 
     # Bot stuff
-    tts(request.json['sentence'], request.json['voice_id'], f'inputs/file_{sentence_id}_bot.wav')
-    with open(f'inputs/file_{sentence_id}_bot.txt', 'w') as f:
-        f.write(request.json['sentence'])
+    tts(request.json['sentence'], request.json['voice_id'],
+        f'inputs/file_{sentence_id}_bot.wav')
+    with open(f'inputs/file_{sentence_id}_bot.txt', 'w', encoding='utf-8') as f:
+        f.write(" ".join(list(request.json['sentence'])))
 
     # User stuff
     audio = request.json['audio'].replace('data:audio/webm;base64,', '')
@@ -96,11 +99,14 @@ def sentence_api():
     audio_file = open(f'inputs/file_{sentence_id}_user.webm', "rb")
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
 
-    with open(f'inputs/file_{sentence_id}_user.txt', 'w') as f:
-        f.write(transcript.text)
+    with open(f'inputs/file_{sentence_id}_user.txt', 'w',
+              encoding='utf-8') as f:
+        f.write(" ".join(list(transcript.text)))
 
-    subprocess.call(['ffmpeg', '-i', f'inputs/file_{sentence_id}_user.webm', '-c:a', 'pcm_f32le',
-                     f'inputs/file_{sentence_id}_user.wav'])
+    subprocess.call(
+        ['ffmpeg', '-i', f'inputs/file_{sentence_id}_user.webm', '-c:a',
+         'pcm_f32le',
+         f'inputs/file_{sentence_id}_user.wav'])
 
     return {"message": "success"}
 
@@ -124,25 +130,33 @@ def finish_api():
 
     # Run MFA
     subprocess.call(['run_mfa.bat'], shell=True)
-    #subprocess.call(['./run_mfa.sh']) # for linux
+    # subprocess.call(['./run_mfa.sh']) # for linux
 
     # Wait for the output file to be created
-    while not os.path.exists(f'outputs/file_0_user.TextGrid'):
+    while True:
         print('waiting for MFA to finish')
-        time.sleep(10)
+        for sentence_id in sentence_ids:
+            if not os.path.exists(f'outputs/file_{sentence_id}_user.TextGrid') or not os.path.exists(f'outputs/file_{sentence_id}_bot.TextGrid'):
+                time.sleep(10)
+                break
+        else:
+            break
 
     print('MFA finished')
     time.sleep(10)
 
-    results ={}
+    results = {}
     for sentence_id in sentence_ids:
-        results[sentence_id] = get_mapping(f'outputs/file_{sentence_id}_user.TextGrid', f'outputs/file_{sentence_id}_bot.TextGrid')
+        results[sentence_id] = get_mapping(
+            f'outputs/file_{sentence_id}_user.TextGrid',
+            f'outputs/file_{sentence_id}_bot.TextGrid')
+
+    print(results)
     return results
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
-
-
 
 """
 user chooses 10 sentences
@@ -266,5 +280,3 @@ class CreateDirectory(Resource):
 # api.add_resource(OpenAPILLM, '/openai_llm')
 # api.add_resource(OpenAPITranscribe, '/openai_transcribe')
 # api.add_resource(ElevenLabs, '/elevenlabs')
-
-

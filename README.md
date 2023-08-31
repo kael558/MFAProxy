@@ -5,6 +5,8 @@
 [![MIT License][license-shield]][license-url]
 
 ## 🤔 What is this?
+This project was created for LabLab.ai's ElevenLabs hackathon. [Project Video](https://lablab.ai/event/eleven-labs-ai-hackathon/phomemes/languagelearner)
+
 A local server proxy for OpenAI/ElevenLabs services and for Montreal Forced Alignment.
 
 Used in development with [LanguageLearner](https://kael558.github.io/LanguageLearner/)

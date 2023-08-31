@@ -360,3 +360,4 @@ def get_comparison(user_textgrid, bot_textgrid):
             print(ops)
 
     return items1, items2, word_ops
+
